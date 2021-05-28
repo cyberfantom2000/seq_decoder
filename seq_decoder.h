@@ -57,7 +57,7 @@ private:
     quint8 m_delta_T = 5;
     quint8 m_coder_len = 36;
     bool m_A = false;
-    std::array<Rib, MAX_BACK_STEP> m_sh_rib;
+    QList<Rib> m_sh_rib;
     QList<quint8> m_dec_data, m_descrembled_data, m_encode_data;
     QList<bool> m_perf_mask;
     QList<quint8> m_deperf_data;
