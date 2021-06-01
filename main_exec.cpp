@@ -1,9 +1,7 @@
-#include <QCoreApplication>
 #include "myfunc.h"
 #include "seqdecoder.h"
 
-
-int main( )
+void main_exec()
 {
     vector<TCshort> fdata_i;
     intel32_reader("iq_noscramb.bin", fdata_i);
@@ -44,5 +42,4 @@ int main( )
     qDebug() << "add symbs complete";
     decoder.decode();
     qDebug() << "decode complete";
-    return 0;
 }
