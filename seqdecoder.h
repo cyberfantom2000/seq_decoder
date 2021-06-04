@@ -15,7 +15,7 @@ public:
     };
 
     SeqDecoder(CodeRate code);
-    ~SeqDecoder(){};
+    ~SeqDecoder(){}
     void setDefaultParams(const CodeRate &code);
     void setCodeType(const CodeRate &code);
     void setDeltaT(quint8 deltaT);
@@ -35,18 +35,23 @@ private:
         BackwardMove
     };
 
-    // Р РµР±СЂРѕ РєРѕРґРµСЂР° 1/2 (РёСЃРєР»СЋС‡РёС‚РµР»СЊРЅРѕ РґР»СЏ СѓРґРѕР±СЃС‚РІР°)
+
     struct Rib{
-        quint8 b0 = 0; // С‚РёРїРѕ 0 Р±РёС‚
-        quint8 b1 = 0; // С‚РёРїРѕ 1 Р±РёС‚
+        quint8 b0 = 0;
+        quint8 b1 = 0;
     };
     struct Mask{
-        bool b0 = true; // С‚РёРїРѕ 0 Р±РёС‚
-        bool b1 = true; // С‚РёРїРѕ 1 Р±РёС‚
+        bool b0 = true;
+        bool b1 = true;
+    };
+    struct CodePolynom{
+        QString ssk1_2 = "714461625313";
+        QString ssk3_4 = "736750426717050772741";
+        QString ssk7_8 = "776631661776007201537633372136";
     };
 
     void deperforate_data();
-    void metric_calc(Rib &rib0, Rib &rib1, Rib &curRib, bool A, qint16 &metric, quint8 &decSym);
+    void metric_calc(Rib &rib0, Rib &rib1, Rib &curRib, bool A, qint16 &metric, quint8 &decSym, quint16 curPointer);
     quint8 hamming_distance(Rib &rib0, Rib &rib1, Mask &mask);
     void recover_encoder(Rib &rib0, Rib &rib1, QList<quint8> &decData);
     void seq_decode(Rib &curRib, Mask &perfMask);
@@ -55,19 +60,21 @@ private:
     qint64 m_T = 0;
     qint64 m_Mp = -10000, m_Mc = 0, m_Ms = 0;
     CodeRate m_code_type = Intelsat_1_2;
-    quint16 m_back_step = 180, m_norm_step = 100;
+    quint16 m_back_step = 180, m_norm_thresh = 100;
     quint16 m_forward_cnt = 0, m_back_cnt = 0;
     quint16 m_pointer = 0;
     quint8 m_delta_T = 5;
     quint8 m_coder_len = 36;
     State state = Idle;
+    QHash<CodeRate, QString> m_code_polynom;
     QList<bool> m_sh_A;
     QList<Rib> m_sh_rib;
     QList<Mask> m_sh_mask;
+    QList<quint8> m_taps_polynom;
     QList<bool> m_perf_mask;
     QList<quint8> m_dec_data, m_descrembled_data, m_encode_data;
     QList<quint8> m_deperf_data;
-    QVector<quint8> m_decode_data; // РґРµРєРѕРґРёСЂРѕРІР°РЅРЅС‹Рµ РґР°РЅРЅС‹Рµ, РєРѕС‚РѕСЂС‹Рµ СѓР¶Рµ РЅРµ Р±СѓРґСѓС‚ РёР·РјРµРЅСЏС‚СЊСЃСЏ
+    QVector<quint8> m_decode_data; // decoded data that will not change and go to the output
 };
 
 #endif // SEQDECODER_H

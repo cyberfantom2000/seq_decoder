@@ -16,6 +16,7 @@
 #include <complex>
 #include <cstdlib>
 #include <math.h>
+#include <QtCore>
 
 using namespace std;
 
@@ -32,5 +33,6 @@ void hd_reader(string fname, vector<unsigned char> &dout);
 void ConvEncoder1_2(const vector<unsigned char> &data, vector<unsigned char> &encodeData);
 void awgnGen(float &x, float &y);
 float sigmaCalc(int SNR, float symbRate);
+void byteFormer(const QVector<quint8> &decData, QVector<char> &decDataBytes);
 
 #endif // MYFUNC_H

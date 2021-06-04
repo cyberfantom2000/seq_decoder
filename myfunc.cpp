@@ -160,3 +160,20 @@ float sigmaCalc(int SNR, float symbRate){
     noiseSigma = 0.2501f * (sqrt(a) / symbRate);  // mean power for qpsk only
     return noiseSigma;
 }
+
+void byteFormer(const QVector<quint8> &decData, QVector<char> &decDataBytes){
+    int k =0;
+    qint8 byte = 0;
+    for(auto i: decData){
+        if(i == 1)
+            byte |= (1 << k);
+        else
+            byte &= ~(1 << k);
+        k++;
+        if(k==8){
+            decDataBytes.append(byte);
+            k = 0;
+            byte = 0;
+        }
+    }
+}
