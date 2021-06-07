@@ -45,7 +45,7 @@ int main( )
         hd[randGen.bounded(36, size)] = !hd[randGen.bounded(36, size)];
     } */
 
-    // hd[515] = ~hd[515];
+    hd[515] = ~hd[515];
 
     SeqDecoder decoder(SeqDecoder::Intelsat_1_2);
     decoder.setDefaultParams(SeqDecoder::Intelsat_1_2);
@@ -65,6 +65,9 @@ int main( )
             if(decData[w] != noErrDecData[w])
                 numErr.append(w);
         }
+
+
+
         //QVector<char> decDataBytes;
         //byteFormer(decData, decDataBytes);
         //vector<char> vec = decDataBytes.toStdVector();
