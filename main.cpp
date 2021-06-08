@@ -39,13 +39,20 @@ int main( )
     }
     qDebug() << "demodulate complete";
 
-    /* QRandomGenerator randGen;
-     * int size = hd.size();
-    for(uint i=0; i<200; i++){
-        hd[randGen.bounded(36, size)] = !hd[randGen.bounded(36, size)];
-    } */
+    QRandomGenerator randGen;
+    int size = hd.size();
+    int rand = 0;
+    int rand_old;
+    int l = 0;
+   while(l<2000){
+        rand_old = rand;
+        rand = randGen.bounded(512, size);
+        if(abs(rand_old - rand)>256){
+            hd[rand] = ~hd[rand];
+            l++;
+        }
+    }
 
-    hd[515] = ~hd[515];
 
     SeqDecoder decoder(SeqDecoder::Intelsat_1_2);
     decoder.setDefaultParams(SeqDecoder::Intelsat_1_2);
@@ -67,11 +74,6 @@ int main( )
         }
 
 
-
-        //QVector<char> decDataBytes;
-        //byteFormer(decData, decDataBytes);
-        //vector<char> vec = decDataBytes.toStdVector();
-        //char_writer("decData.bin", vec);
         qDebug() << "decode complete";
         return 0;
     }else{

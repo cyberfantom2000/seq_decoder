@@ -26,7 +26,6 @@ public:
     void reset();
     bool addSymbs(const QList<quint8> &symbs);
     void decode();
-    QVector<quint8> testDec;
 
 private:
     enum State{
@@ -52,9 +51,9 @@ private:
     };
 
     void deperforate_data();
-    void metric_calc(Rib &rib0, Rib &rib1, qint16 &metric, quint8 &decSym);
+    void metric_calc(Rib &rib0, Rib &rib1, qint16 &metric, quint8 &decSym, quint16 curPointer);
     quint8 hamming_distance(Rib &rib0, Rib &rib1, Mask &mask);
-    void recover_encoder(Rib &rib0, Rib &rib1);
+    void recover_encoder(Rib &rib0, Rib &rib1, quint16 curPointer);
     void seq_decode();
 
 private:

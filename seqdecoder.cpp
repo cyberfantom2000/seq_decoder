@@ -107,16 +107,9 @@ void SeqDecoder::reset(){
 
 
 bool SeqDecoder::addSymbs(const QList<quint8> &symbs){
-    qint32 a = symbs.count(0);
-    qint32 b = symbs.count(1);
-    if((a + b) <= symbs.size()){
-        m_encode_data.clear();
-        m_encode_data.append(symbs);
-        return true;
-    }else{
-        qDebug() << "list contains elements other tha 0 or 1";
-        return false;
-    }
+     m_encode_data.clear();
+     m_encode_data.append(symbs);
+     return true;
 }
 
 
@@ -143,7 +136,8 @@ void SeqDecoder::deperforate_data(){
     qint32 i = 0;
     while(i < m_encode_data.size()){
         if(mask[idx]){
-            m_deperf_data.append(m_encode_data[i]);
+            //m_deperf_data.append(m_encode_data[i]);
+            m_deperf_data.append( (m_encode_data[i]&1) );
             m_perf_mask.append(true);
             i++;
         }else{
@@ -182,9 +176,15 @@ void SeqDecoder::decode(){
             mask.b1 = *(k+1);           
             m_sh_mask.prepend(mask);
             m_sh_A.prepend(false);
+
+            if(num==46099){
+                qDebug();
+            }
+
             seq_decode();
         }
         k += 2;
+
         if(num%1000 == 0)
             qDebug() << "decoding num =" << num << "symbs";
         num++;
@@ -227,10 +227,14 @@ void SeqDecoder::seq_decode(){
          [[clang::fallthrough]];
          case MetricCalc:
             // Порождение двух возможных ребер
-            recover_encoder(rib0, rib1);
+            recover_encoder(rib0, rib1, m_pointer);
             // Вычисление метрики между возможными ребрами и пришедшим ребром
-            metric_calc(rib0, rib1, metric, decSym);
+            metric_calc(rib0, rib1, metric, decSym, m_pointer-1);
             m_Ms = m_Mc + metric;
+
+            if(m_forward_cnt == 42)
+                qDebug();
+
 
             if(m_Ms >= m_T){
                 m_dec_data[m_pointer-1] = decSym;
@@ -238,6 +242,7 @@ void SeqDecoder::seq_decode(){
             }else if(m_Mp >= m_T){
                 if(m_forward_cnt == 0)
                     qDebug() << "m_forward_cnt = 0";
+                m_sh_A[m_pointer-1] = false;
                 state = BackwardMove;
             }else{
                 m_sh_A[m_pointer-1] = false;
@@ -265,8 +270,8 @@ void SeqDecoder::seq_decode(){
 
             // Вычисление прошлого Mp
             if(m_pointer < m_back_step-3){ // еще есть шаги назад
-                recover_encoder(rib0, rib1);
-                metric_calc(rib0, rib1, metric, decSym); // FIXME проверить pointer-1 или pointer
+                recover_encoder(rib0, rib1, m_pointer+1);
+                metric_calc(rib0, rib1, metric, decSym, m_pointer); // FIXME проверить pointer-1 или pointer
                 m_Mp -= metric;
             }else if(m_pointer == m_back_step-2){ // назад можно сделать еще 1 шаг
                 m_Mp = 0;
@@ -298,16 +303,16 @@ void SeqDecoder::seq_decode(){
 }
 
 
-void SeqDecoder::metric_calc(Rib &rib0, Rib &rib1, qint16 &metric, quint8 &decSym){
-    quint8 hamm0 = hamming_distance(rib0, m_sh_rib[m_pointer-1], m_sh_mask[m_pointer-1]);
-    quint8 hamm1 = hamming_distance(rib1, m_sh_rib[m_pointer-1], m_sh_mask[m_pointer-1]);
+void SeqDecoder::metric_calc(Rib &rib0, Rib &rib1, qint16 &metric, quint8 &decSym, quint16 curPointer){
+    quint8 hamm0 = hamming_distance(rib0, m_sh_rib[curPointer], m_sh_mask[curPointer]);
+    quint8 hamm1 = hamming_distance(rib1, m_sh_rib[curPointer], m_sh_mask[curPointer]);
 
     if(hamm0 <= hamm1){
-        metric = m_sh_A[m_pointer] ? (hamm1 * (-5) + 1) : (hamm0 * (-5) + 1);
-        decSym = m_sh_A[m_pointer] ? 1 : 0;
+        metric = m_sh_A[curPointer] ? (hamm1 * (-5) + 1) : (hamm0 * (-5) + 1);
+        decSym = m_sh_A[curPointer] ? 1 : 0;
     }else{
-        metric = m_sh_A[m_pointer] ? (hamm0 * (-5) + 1) : (hamm1 * (-5) + 1);
-        decSym = m_sh_A[m_pointer] ? 0 : 1;
+        metric = m_sh_A[curPointer] ? (hamm0 * (-5) + 1) : (hamm1 * (-5) + 1);
+        decSym = m_sh_A[curPointer] ? 0 : 1;
     }
 }
 
@@ -322,11 +327,11 @@ quint8 SeqDecoder::hamming_distance(Rib &rib0, Rib &rib1, Mask &mask){
 }
 
 
-void SeqDecoder::recover_encoder(Rib &rib0, Rib &rib1){
+void SeqDecoder::recover_encoder(Rib &rib0, Rib &rib1, quint16 curPointer){
     // FIXME добавить дифф. кодер
 
-    QList<quint8> localDecData0(m_dec_data.mid(m_pointer, m_coder_len-1));
-    QList<quint8> localDecData1(m_dec_data.mid(m_pointer, m_coder_len-1));
+    QList<quint8> localDecData0(m_dec_data.mid(curPointer, m_coder_len-1));
+    QList<quint8> localDecData1(m_dec_data.mid(curPointer, m_coder_len-1));
     localDecData0.prepend(0);
     localDecData1.prepend(1);
 
